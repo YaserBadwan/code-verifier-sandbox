@@ -1,0 +1,26 @@
+# build output from make build
+/bin/
+
+# go test and coverage leftovers
+*.test
+*.prof
+coverage.out
+coverage.html
+
+# local go workspace files
+go.work
+go.work.sum
+
+# local environment overrides
+.env
+.env.*
+
+# editors
+.idea/
+.vscode/
+*.swp
+*~
+
+# operating systems
+.DS_Store
+Thumbs.db

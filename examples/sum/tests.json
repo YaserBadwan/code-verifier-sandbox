@@ -1,0 +1,6 @@
+[
+  { "name": "small", "input": "1 2\n", "expected_output": "3\n" },
+  { "name": "negative", "input": "-5 5\n", "expected_output": "0\n" },
+  { "name": "big", "input": "1000000000000000000 1000000000000000000\n", "expected_output": "2000000000000000000\n" },
+  { "name": "messy whitespace", "input": "  7\n\n   8   \n", "expected_output": "15\n" }
+]

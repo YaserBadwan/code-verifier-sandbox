@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Code Verifier</title>
+  <link rel="icon" href="/ui/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/ui/app.css">
+  <script src="/ui/app.js" defer></script>
+</head>
+<body>
+  <header class="bar">
+    <h1 class="brand">
+      <svg class="mark" viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5" class="mark-open"/></svg>
+      Code Verifier
+    </h1>
+    <div class="bar-actions">
+      <label class="visually-hidden" for="language">Language</label>
+      <select id="language" class="select"></select>
+      <button type="button" id="limits-button" class="button quiet" aria-haspopup="dialog">Limits</button>
+      <button type="button" id="open-file" class="button quiet">Open file</button>
+      <button type="button" id="run" class="button primary">
+        <span class="run-label">Run</span>
+        <kbd class="shortcut" id="run-shortcut">Ctrl ↵</kbd>
+      </button>
+    </div>
+  </header>
+
+  <div id="notice" class="notice" role="status" hidden></div>
+
+  <main class="workspace">
+    <section class="pane code-pane" aria-label="Source code">
+      <div class="editor">
+        <div class="gutter" id="gutter" aria-hidden="true"></div>
+        <textarea id="code" class="code" spellcheck="false" autocapitalize="off" autocomplete="off" wrap="off" aria-label="Source code"></textarea>
+      </div>
+      <div id="compile" class="compile" hidden>
+        <div class="compile-head">
+          <span id="compile-title"></span>
+          <button type="button" id="compile-close" class="link">Hide</button>
+        </div>
+        <pre id="compile-output" class="compile-output"></pre>
+      </div>
+    </section>
+
+    <section class="pane side-pane" aria-label="Tests and single runs">
+      <div class="side-head">
+        <div class="tabs" role="tablist">
+          <button type="button" role="tab" id="tab-tests" class="tab" aria-controls="panel-tests" aria-selected="true">Tests</button>
+          <button type="button" role="tab" id="tab-once" class="tab" aria-controls="panel-once" aria-selected="false" tabindex="-1">Run once</button>
+        </div>
+        <div class="tests-meta" id="tests-meta">
+          <div id="strip" class="strip" role="img" aria-label="No results yet"></div>
+          <p id="summary" class="summary" aria-live="polite"></p>
+          <div class="tests-actions">
+            <button type="button" id="load-tests" class="link">Load</button>
+            <button type="button" id="add-test" class="link">Add test</button>
+          </div>
+        </div>
+        <p id="once-summary" class="summary" aria-live="polite" hidden></p>
+      </div>
+
+      <div id="panel-tests" class="panel" role="tabpanel" aria-labelledby="tab-tests">
+        <ol id="tests" class="tests"></ol>
+      </div>
+
+      <div id="panel-once" class="panel once" role="tabpanel" aria-labelledby="tab-once" hidden>
+        <div class="box">
+          <div class="box-head"><label for="once-input">Input</label></div>
+          <textarea id="once-input" class="once-input" spellcheck="false" placeholder="What your program reads from stdin, leave empty for none"></textarea>
+        </div>
+        <div id="once-result" class="once-result" hidden>
+          <p id="once-message" class="message" hidden></p>
+          <div class="box">
+            <div class="box-head" id="once-output-head">Output</div>
+            <pre id="once-output" class="once-output"></pre>
+          </div>
+          <div class="box" id="once-stderr-box" hidden>
+            <div class="box-head" id="once-stderr-head">Error output</div>
+            <pre id="once-stderr" class="once-output stderr-text"></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="limits" class="dialog" aria-labelledby="limits-title">
+    <form method="dialog" id="limits-form">
+      <h2 id="limits-title">Limits</h2>
+      <div class="field-row">
+        <label class="field">
+          <span>Time per test</span>
+          <span class="with-unit"><input type="number" id="time-limit" min="100" step="100" inputmode="numeric"><span>ms</span></span>
+        </label>
+        <label class="field">
+          <span>Memory per test</span>
+          <span class="with-unit"><input type="number" id="memory-limit" min="32" step="32" inputmode="numeric"><span>MB</span></span>
+        </label>
+      </div>
+      <fieldset class="field">
+        <legend>Compare output</legend>
+        <label class="choice"><input type="radio" name="compare" value="COMPARE_MODE_IGNORE_TRAILING_WHITESPACE"> Ignore trailing spaces and blank lines</label>
+        <label class="choice"><input type="radio" name="compare" value="COMPARE_MODE_EXACT"> Exactly, byte for byte</label>
+        <label class="choice"><input type="radio" name="compare" value="COMPARE_MODE_TOKENS"> Word by word, any whitespace</label>
+      </fieldset>
+      <label class="choice"><input type="checkbox" id="fail-fast"> Stop at the first failing test</label>
+      <div class="dialog-actions">
+        <button type="button" id="limits-reset" class="link">Reset</button>
+        <button type="submit" class="button primary">Done</button>
+      </div>
+    </form>
+  </dialog>
+
+  <input type="file" id="file-input" hidden>
+  <input type="file" id="tests-input" accept=".json,.in,.out,.ans,.txt" multiple hidden>
+</body>
+</html>

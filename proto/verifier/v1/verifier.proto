@@ -1,0 +1,119 @@
+syntax = "proto3";
+
+package verifier.v1;
+
+option go_package = "github.com/YaserBadwan/code-verifier-sandbox/proto/verifier/v1;verifierv1";
+
+// Compiles untrusted code once and runs it against every test case
+// inside throwaway Docker containers.
+service VerifierService {
+  rpc Verify(VerifyRequest) returns (VerifyResponse);
+
+  // Same as Verify but sends the compile result and each test result as soon
+  // as they are ready, then a final summary.
+  rpc VerifyStream(VerifyRequest) returns (stream VerifyEvent);
+
+  rpc ListLanguages(ListLanguagesRequest) returns (ListLanguagesResponse);
+}
+
+enum Verdict {
+  VERDICT_UNSPECIFIED = 0;
+  VERDICT_ACCEPTED = 1;
+  VERDICT_WRONG_ANSWER = 2;
+  VERDICT_TIME_LIMIT_EXCEEDED = 3;
+  VERDICT_MEMORY_LIMIT_EXCEEDED = 4;
+  VERDICT_OUTPUT_LIMIT_EXCEEDED = 5;
+  VERDICT_RUNTIME_ERROR = 6;
+  VERDICT_COMPILATION_ERROR = 7;
+  VERDICT_INTERNAL_ERROR = 8;
+  // Not executed because an earlier test failed and stop_on_first_failure was set
+  VERDICT_SKIPPED = 9;
+}
+
+enum CompareMode {
+  // Treated as COMPARE_MODE_IGNORE_TRAILING_WHITESPACE
+  COMPARE_MODE_UNSPECIFIED = 0;
+  // Byte for byte
+  COMPARE_MODE_EXACT = 1;
+  // Ignores spaces, tabs and CR at the end of every line plus trailing empty lines
+  COMPARE_MODE_IGNORE_TRAILING_WHITESPACE = 2;
+  // Compares whitespace separated tokens, so layout does not matter at all
+  COMPARE_MODE_TOKENS = 3;
+}
+
+message TestCase {
+  // Optional label shown back in the results
+  string name = 1;
+  string input = 2;
+  string expected_output = 3;
+}
+
+message VerifyRequest {
+  // Language id or alias from ListLanguages, for example "python" or "cpp"
+  string language = 1;
+  string source_code = 2;
+  repeated TestCase test_cases = 3;
+  // Wall clock limit per test. 0 means the server default.
+  uint32 time_limit_ms = 4;
+  // Memory limit per test. 0 means the server default.
+  uint32 memory_limit_mb = 5;
+  CompareMode compare_mode = 6;
+  bool stop_on_first_failure = 7;
+}
+
+message CompileResult {
+  bool success = 1;
+  // Compiler or syntax checker output, truncated if very long
+  string output = 2;
+  uint32 duration_ms = 3;
+}
+
+message TestResult {
+  uint32 index = 1;
+  string name = 2;
+  Verdict verdict = 3;
+  string stdout = 4;
+  string stderr = 5;
+  bool stdout_truncated = 6;
+  bool stderr_truncated = 7;
+  int32 exit_code = 8;
+  uint32 duration_ms = 9;
+  // Human readable explanation for anything other than an accepted test
+  string message = 10;
+}
+
+message VerifyResponse {
+  string submission_id = 1;
+  // ACCEPTED only when every test passed, otherwise the verdict of the first failure
+  Verdict verdict = 2;
+  CompileResult compile = 3;
+  repeated TestResult results = 4;
+  uint32 passed = 5;
+  uint32 total = 6;
+  uint32 duration_ms = 7;
+}
+
+message VerifyEvent {
+  oneof event {
+    CompileResult compile = 1;
+    TestResult test_result = 2;
+    VerifyResponse summary = 3;
+  }
+}
+
+message ListLanguagesRequest {}
+
+message Language {
+  string id = 1;
+  string name = 2;
+  repeated string aliases = 3;
+  string image = 4;
+  // File name the source is saved as, which matters for Java
+  string source_file = 5;
+  // False while the Docker image is missing or still being pulled
+  bool ready = 6;
+}
+
+message ListLanguagesResponse {
+  repeated Language languages = 1;
+}
